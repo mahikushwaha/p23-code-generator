@@ -1,0 +1,41 @@
+task_id,title,category,problem,visible_tests,hidden_tests,first_attempt,retry,final,time_s,candidates,flagged,note,basic_prompt
+T01,Prime number check,Basic Python,Write a Python function to check whether a number is prime.,2,5,PASS,-,PASS,24.1,3,0,,PASS
+T02,Largest number in a list,Basic Python,Write a Python function to find the largest number in a list. Return None for an empty list.,2,3,PASS,-,PASS,5.7,3,0,,FAIL
+T03,FizzBuzz list,Basic Python,"Write a function that returns FizzBuzz for 1..n as a list of strings: 'Fizz' for multiples of 3, 'Buzz' for multiples of 5, 'FizzBuzz' for both, otherwise the number as a string.",2,4,PASS,-,PASS,6.5,3,0,,FAIL
+T04,Palindrome check,Edge cases,"Write a Python function to check whether a string is a palindrome while ignoring spaces, punctuation and case.",2,4,PASS,-,PASS,5.8,3,0,,FAIL
+T05,Nth Fibonacci number,Algorithms,Write a function returning the nth Fibonacci number where fib(0)=0 and fib(1)=1. It must be fast enough for n=50.,2,4,PASS,-,PASS,6.7,3,0,,FAIL
+T06,Binary search,Algorithms,"Write a binary search function that returns the index of target in a sorted list, or -1 if it is not present.",2,4,PASS,-,PASS,6.0,3,0,,PASS
+T07,Two-sum indices,Algorithms,"Write a function that returns the two indices (in ascending order, as a list) of the numbers in nums that add up to target. Return None if no pair exists.",2,4,PASS,-,PASS,6.3,3,0,,FAIL
+T08,Valid brackets,Data structures,Write a function that checks whether a string of brackets ()[]{} is valid (every bracket closed in the correct order).,2,4,PASS,-,PASS,7.3,3,0,,FAIL
+T09,Merge sorted lists,Data structures,Write a function that merges two sorted lists into one sorted list without using the built-in sort.,2,3,PASS,-,PASS,16.3,3,0,,PASS
+T10,Top-k frequent numbers,Data structures,"Write a function returning the k most frequent numbers in a list, ordered by frequency (highest first); ties are broken by the smaller number first.",2,4,PASS,-,PASS,16.4,3,0,,FAIL
+T11,Standardize a tensor (PyTorch),PyTorch,Write a PyTorch function that standardizes a 2D tensor column-wise: subtract each column's mean and divide by (population std with unbiased=False + 1e-8).,2,3,FAIL,FAIL,FAIL,32.4,3,0,"Failed visible test tuple(standardize(torch.tensor([[1.,2.],[3.,4.],[5.,6.]])).shape): rt asyncio
+  File ""C:\Users\MAHI KUSHWAHA\AppData\Local\Programs\Python\Python313\Lib\asyncio\__init__.py"", line 43, in <module>
+    from .windows_events import *
+  File ""C:\Users\MAHI KUSHWAHA\AppData\Local\Programs\Python\Python313\Lib\asyncio\windows_events.py"", line 8, in <module>
+    import _overlapped
+OSError: [WinError 10106] The requested service provider could not be loaded or initialized",FAIL
+T12,GAN generator (PyTorch),GAN,"Write a PyTorch function build_generator(latent_dim, out_dim) that returns a GAN generator: an nn.Module (MLP with one hidden layer and ReLU) mapping noise of shape (batch, latent_dim) to (batch, out_dim), with Tanh output.",2,3,FAIL,FAIL,FAIL,31.6,3,0,"Failed visible test tuple(build_generator(16, 784)(torch.randn(4, 16)).shape): rt asyncio
+  File ""C:\Users\MAHI KUSHWAHA\AppData\Local\Programs\Python\Python313\Lib\asyncio\__init__.py"", line 43, in <module>
+    from .windows_events import *
+  File ""C:\Users\MAHI KUSHWAHA\AppData\Local\Programs\Python\Python313\Lib\asyncio\windows_events.py"", line 8, in <module>
+    import _overlapped
+OSError: [WinError 10106] The requested service provider could not be loaded or initialized",FAIL
+T13,GAN discriminator (PyTorch),GAN,"Write a PyTorch function build_discriminator(in_dim) that returns a GAN discriminator: an nn.Module (MLP with one hidden layer and LeakyReLU) mapping (batch, in_dim) to (batch, 1) probabilities using Sigmoid.",2,3,FAIL,FAIL,FAIL,32.7,3,0,"Failed visible test tuple(build_discriminator(784)(torch.randn(4, 784)).shape): rt asyncio
+  File ""C:\Users\MAHI KUSHWAHA\AppData\Local\Programs\Python\Python313\Lib\asyncio\__init__.py"", line 43, in <module>
+    from .windows_events import *
+  File ""C:\Users\MAHI KUSHWAHA\AppData\Local\Programs\Python\Python313\Lib\asyncio\windows_events.py"", line 8, in <module>
+    import _overlapped
+OSError: [WinError 10106] The requested service provider could not be loaded or initialized",FAIL
+T14,VAE reparameterization trick (PyTorch),VAE,"Write a PyTorch function reparameterize(mu, logvar) for a VAE latent space: return z = mu + std * eps where std = exp(0.5 * logvar) and eps is standard normal noise of the same shape.",2,3,FAIL,FAIL,FAIL,26.2,3,0,"Failed visible test tuple(reparameterize(torch.zeros(5, 3), torch.zeros(5, 3)).shape): rt asyncio
+  File ""C:\Users\MAHI KUSHWAHA\AppData\Local\Programs\Python\Python313\Lib\asyncio\__init__.py"", line 43, in <module>
+    from .windows_events import *
+  File ""C:\Users\MAHI KUSHWAHA\AppData\Local\Programs\Python\Python313\Lib\asyncio\windows_events.py"", line 8, in <module>
+    import _overlapped
+OSError: [WinError 10106] The requested service provider could not be loaded or initialized",FAIL
+T15,VAE KL-divergence loss (PyTorch),VAE,"Write a PyTorch function kl_divergence(mu, logvar) for a VAE loss: KL = -0.5 * sum(1 + logvar - mu^2 - exp(logvar)) over latent dimensions, then averaged over the batch. Return a scalar tensor.",2,3,FAIL,FAIL,FAIL,23.2,3,0,"Failed visible test round(kl_divergence(torch.zeros(4, 3), torch.zeros(4, 3)).item(), 5): rt asyncio
+  File ""C:\Users\MAHI KUSHWAHA\AppData\Local\Programs\Python\Python313\Lib\asyncio\__init__.py"", line 43, in <module>
+    from .windows_events import *
+  File ""C:\Users\MAHI KUSHWAHA\AppData\Local\Programs\Python\Python313\Lib\asyncio\windows_events.py"", line 8, in <module>
+    import _overlapped
+OSError: [WinError 10106] The requested service provider could not be loaded or initialized",FAIL

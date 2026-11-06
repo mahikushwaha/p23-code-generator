@@ -1,0 +1,9 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+streamlit
+torch>=2.6
+transformers<5
+numpy
+pandas
+requests
+bandit
+gTTS
