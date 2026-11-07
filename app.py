@@ -1,8 +1,6 @@
-import numpy as np
 import streamlit as st
 from llm.generator import make_spec, LLMError
 from pipeline import run_pipeline, STAGES
-from prompting.prompt_builder import basic_prompt, structured_prompt
 from utils.helpers import load_tasks, task_to_spec
 from evaluation import evaluate
 from media import generate as M
@@ -18,7 +16,7 @@ T.inject_css(st.session_state.dark)
 TASKS = load_tasks()
 BY_ID = {t["id"]: t for t in TASKS}
 BY_TITLE = {t["title"]: t for t in TASKS}
-PAGES = ["Home", "Studio", "Insights", "Lab", "Results"]
+PAGES = ["Home", "Studio", "Results"]
 
 
 def go(page):
@@ -27,6 +25,7 @@ def go(page):
 
 def set_problem(text):
     st.session_state.problem = text
+    st.session_state.more = None
 
 
 def pick_more():
@@ -57,10 +56,19 @@ def home():
     H('<div class="cf-sp"></div>')
     _, b1, b2, _ = st.columns([2, 1.3, 1.3, 2])
     b1.button("Start Coding", type="primary", use_container_width=True, on_click=go, args=("Studio",))
-    b2.button("How It Works", use_container_width=True, on_click=go, args=("Insights",))
+    b2.button("How It Works", use_container_width=True, on_click=lambda: st.session_state.update(show_how=True))
     steps = [("✏️", "Describe"), ("🧠", "Generate"), ("🏅", "Rank"), ("🧪", "Test"), ("🔧", "Repair"), ("🛡️", "Secure")]
     flow = '<span class="cf-arrow">→</span>'.join(f'<div class="cf-fs">{i} {n}</div>' for i, n in steps)
     H(f'<div class="cf-flow">{flow}</div>')
+    if st.session_state.get("show_how"):
+        section("How it works", "Six steps, all automatic.")
+        how = [("✏️", "Describe", "You write the task in plain English."),
+               ("🧠", "Generate", "The AI writes several different solutions."),
+               ("🏅", "Rank", "CodeBERT scores how well each solution fits your task."),
+               ("🧪", "Test", "The best one runs in a locked sandbox against visible and hidden tests."),
+               ("🔧", "Repair", "If a test fails, the error goes back to the AI for one fix."),
+               ("🛡️", "Secure", "Bandit scans the final code for security problems.")]
+        H('<div class="cf-grid">' + "".join(f'<div class="cf-card"><div class="cf-ico">{i}</div><h4>{t}</h4><p>{d}</p></div>' for i, t, d in how) + "</div>")
     section("Everything between idea and working code", "One workspace, from your description to code you can trust.")
     feats = [("🧠", "AI Code Generation", "Turn plain English into working Python in seconds."),
              ("🗂️", "Multiple Solutions", "Several candidates are written, because the first idea is not always the best."),
@@ -211,6 +219,11 @@ def render_result(R):
             with st.expander(f"{it['severity']} · {it['text']} (line {it['line']})"):
                 code_block(it["snippet"] or "-", "finding.py", max_h=200)
 
+    section("Licence & originality note", "Please read before you reuse the code.")
+    H('''<div class="cf-card"><p>• AI-generated code can resemble existing open-source or copyrighted code. Check it for plagiarism and respect the original licence before you reuse or publish it.
+    • The models and tools used here have their own licences (for example CodeBERT is MIT-licensed and Bandit is Apache-2.0). Follow each licence.
+    • Review all generated code before using it in production, and never paste passwords or private data into a prompt.</p></div>''')
+
 
 def studio():
     section("Describe your Python task", "Plain English is fine. Mention edge cases if they matter.")
@@ -260,96 +273,6 @@ def studio():
         <p style="margin-top:.4rem">Your results will appear here.</p></div>""")
 
 
-# ---------------- INSIGHTS ----------------
-def insights():
-    section("The AI behind CodeForge", "An optional, technical look at what happens when you press Generate & Test.")
-    section("1 · How multiple solutions are generated", "A language model picks code one token at a time. Temperature controls how adventurous that choice is.")
-    temp = st.slider("Temperature", 0.1, 2.0, 0.7, 0.1)
-    toks, logits = ["return", "if", "for", "while", "def"], np.array([3.2, 2.1, 1.5, 0.7, 0.2])
-    p = np.exp(logits / temp); p /= p.sum()
-    H("".join(f'<div class="cf-prob"><span class="k">{k}</span><div class="b"><div style="width:{v*100:.1f}%"></div></div><span class="p">{v*100:.0f}%</span></div>'
-              for k, v in zip(toks, p)).join(['<div class="cf-card"><b>Next-token probabilities</b><div class="cf-sp"></div>', "</div>"]))
-    st.caption("Low temperature: the model nearly always takes the top choice. High temperature: more variety. CodeForge asks for each solution at a different temperature (0.2, 0.7, 1.0, ...) so the candidates really differ.")
-
-    section("2 · How CodeBERT ranks them", "CodeBERT is a Transformer trained on code and text. It reads, it does not write.")
-    steps = [("1", "Read", "The task and each solution are split into tokens."), ("2", "Attend", "Self-attention lets every token look at every other token to capture meaning."),
-             ("3", "Embed", "Token vectors are averaged into one vector per text."), ("4", "Compare", "Cosine similarity between task and code gives the score. Highest wins.")]
-    H('<div class="cf-grid">' + "".join(f'<div class="cf-card"><div class="cf-ico">{a}</div><h4>{b}</h4><p>{c}</p></div>' for a, b, c in steps) + "</div>")
-    st.caption("A high score means the code looks relevant to the task, not that it is correct. That is why the sandbox test comes next.")
-
-    section("3 · Prompting: basic vs structured", "The same task, asked two ways. CodeForge uses the structured version.")
-    spec = task_to_spec(TASKS[0])
-    c1, c2 = st.columns(2)
-    with c1:
-        st.caption("Basic prompt"); code_block(basic_prompt(spec["problem"]), "basic.txt", "text", 300)
-    with c2:
-        st.caption("Structured prompt"); code_block(structured_prompt(spec), "structured.txt", "text", 300)
-    st.caption("The structured prompt adds the exact function name, input and output format, examples, constraints and safety rules, so the generated code fits the tests.")
-
-    section("4 · Generative vs discriminative models")
-    H("""<div class="cf-grid"><div class="cf-card"><div class="cf-ico">🧠</div><h4>Generative</h4><p>Learns what code looks like and creates new code. Models the data itself, p(x). The LLM and GANs/VAEs are generative.</p></div>
-    <div class="cf-card"><div class="cf-ico">🏅</div><h4>Discriminative</h4><p>Learns to tell things apart or score them. Models p(label | input). CodeBERT is used this way here: it scores, it does not write.</p></div></div>""")
-    H("""<div class="cf-card cf-scroll"><table class="cf-tbl"><tr><th>Part</th><th>Role</th><th>Type</th></tr>
-    <tr><td>LLM (Groq / Gemini)</td><td>Writes solutions and the repair</td><td>Generative</td></tr>
-    <tr><td>CodeBERT</td><td>Ranks solutions</td><td>Encoder used discriminatively</td></tr>
-    <tr><td>Test runner</td><td>Checks real behaviour</td><td>Rule-based verifier</td></tr>
-    <tr><td>Bandit</td><td>Finds risky patterns</td><td>Static analysis</td></tr></table></div>""")
-
-    section("5 · The complete pipeline")
-    st.graphviz_chart("""digraph{bgcolor="transparent";rankdir=LR;node[shape=box,style="rounded,filled",fontname=Helvetica,fillcolor="#2563eb",fontcolor=white,color="#2563eb"];edge[color="#94a3b8",fontname=Helvetica,fontcolor="#94a3b8"];
-A[label="Your task"];B[label="Structured\\nprompt"];C[label="LLM writes\\nsolutions"];D[label="CodeBERT\\nranks"];E[label="Sandbox\\ntests"];F[label="Pass?",shape=diamond,fillcolor="#f59e0b",color="#f59e0b"];G[label="LLM repair\\n(once)"];H[label="Re-test"];I[label="Bandit\\nscan"];J[label="Final code",fillcolor="#10b981",color="#10b981"];
-A->B->C->D->E->F;F->I[label="yes"];F->G[label="no"];G->H->I;I->J}""")
-    section("Responsible use")
-    H("""<div class="cf-card"><p>• LLM-generated code can contain bugs and security flaws. • It may resemble existing or copyrighted code, so check licences. •
-    Respect the licences of the models and libraries used (CodeBERT is MIT-licensed). • The sandbox reduces risk but does not guarantee complete security. •
-    Always review generated code before using it in production. • Your task text is sent to the AI provider, so do not paste secrets.</p></div>""")
-
-
-# ---------------- LAB ----------------
-def lab_page():
-    from ui import lab
-    section("Generative AI Lab", "Train a tiny VAE and GAN in your browser session on 8×8 shape images, then explore what they learned.")
-    X, y = lab.make_data()
-    c1, c2 = st.columns([3, 2], vertical_alignment="bottom")
-    epochs = c1.slider("Training epochs", 10, 60, 30)
-    go_train = c2.button("Train VAE & GAN", type="primary", use_container_width=True)
-    if go_train:
-        with st.spinner("Training both models (about a minute on a free server)..."):
-            try:
-                st.session_state.lab = lab.run_lab(epochs)
-            except Exception:
-                banner("bad", "Training failed", "PyTorch could not run the demo here. Please try again.")
-    st.caption("Training data: four kinds of simple shapes with a little noise")
-    st.image(lab.mosaic(X[:16], 8), width=380)
-    L = st.session_state.get("lab")
-    if not L:
-        banner("info", "Press Train to start", "It trains a VAE with a 2-number latent space, and a GAN with the same budget.")
-        return
-    t1, t2, t3 = st.tabs(["Latent space", "Generated output", "GAN vs VAE"])
-    with t1:
-        st.caption("A VAE squeezes every image into just 2 numbers (its latent code). Similar shapes should land near each other.")
-        T.svg_scatter(L["latent"], lab.NAMES)
-        st.caption("Walking across the latent space and decoding each point: shapes blend smoothly from one to another.")
-        st.image(L["grid"], width=420)
-    with t2:
-        st.caption("Top row: original images. Bottom row: VAE reconstructions.")
-        st.image(L["recon"], width=520)
-        st.caption("New images from the VAE (random points in latent space)")
-        st.image(L["vae_samples"], width=520)
-        st.caption("New images from the GAN (generator fed random noise)")
-        st.image(L["gan_samples"], width=520)
-    with t3:
-        m = L["m"]
-        H(f"""<div class="cf-card cf-scroll"><table class="cf-tbl"><tr><th></th><th>VAE</th><th>GAN</th></tr>
-        <tr><td>How it learns</td><td>Encoder + decoder, reconstruction + KL loss</td><td>Generator vs discriminator game</td></tr>
-        <tr><td>Training time (measured)</td><td>{m['vae_time']:.1f} s</td><td>{m['gan_time']:.1f} s</td></tr>
-        <tr><td>Final loss (measured)</td><td>{m['vae_loss']:.2f}</td><td>D {m['gan_d']:.2f} · G {m['gan_g']:.2f}</td></tr>
-        <tr><td>Distance of new samples to nearest real image (lower = more realistic)</td><td>{m['vae_nn']:.4f}</td><td>{m['gan_nn']:.4f}</td></tr>
-        <tr><td>Can encode a real image?</td><td>Yes, into a smooth latent space</td><td>No encoder</td></tr>
-        <tr><td>Typical strength</td><td>Stable training, meaningful latent space</td><td>Sharper samples when it trains well</td></tr></table></div>""")
-        st.caption("Numbers come from the run you just did and will vary with epochs. On tiny data a GAN can be unstable, which is part of the lesson.")
-
-
 # ---------------- RESULTS ----------------
 def results():
     section("Evaluation dashboard", "15 Python tasks (basic Python, algorithms, data structures, edge cases, PyTorch, GAN and VAE), run end to end.")
@@ -388,5 +311,5 @@ def results():
         st.rerun()
 
 
-{"Home": home, "Studio": studio, "Insights": insights, "Lab": lab_page, "Results": results}[page]()
+{"Home": home, "Studio": studio, "Results": results}[page]()
 H('<div class="cf-foot">CodeForge · AI-generated code can contain mistakes. Review it before you use it.</div>')
