@@ -7,7 +7,7 @@ app_port: 8501
 pinned: false
 ---
 
-# CodeForge â€“ P23 Code Generator with Test Runner (Roll No. 23)
+# CodeForge P23 Code Generator with Test Runner (Roll No. 23)
 
 ## 1. Problem statement
 Generate Python from a plain-English task, test it, and repair it once on failure.
@@ -18,7 +18,7 @@ Plain-English input Â· 3 candidate solutions Â· CodeBERT ranking Â· sandbo
 ## 3. Architecture
 Problem â†’ U1 structured prompt â†’ U2 LLM (3 candidates) â†’ U3 CodeBERT rank â†’ U4 sandbox tests â†’ pass? â†’ (no: one LLM repair â†’ re-test) â†’ U5 Bandit â†’ final output. The same diagram is in the app's **How it works** tab.
 
-## 4. U1â€“U5 implementation
+## 4. U1 to U5 implementation
 | Unit | File | What it does |
 |---|---|---|
 | U1 | `prompting/prompt_builder.py` | Basic vs structured prompt (spec, I/O, examples, constraints, function name, safety) |
@@ -43,7 +43,7 @@ To use Gemini: `LLM_PROVIDER=gemini` and `GEMINI_API_KEY=...`. Free keys: consol
 streamlit run app.py
 ```
 
-## 8. Deploy (Hugging Face Spaces â€“ recommended)
+## 8. Deploy (Hugging Face Spaces  recommended)
 1. Create a Space at huggingface.co/new-space â†’ SDK **Streamlit** â†’ Public.
 2. Push this repo to the Space (or connect it to GitHub).
 3. Space â†’ Settings â†’ **Variables and secrets** â†’ add `GROQ_API_KEY` (and `LLM_PROVIDER` if not groq).
